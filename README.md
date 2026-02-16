@@ -1,4 +1,1 @@
-# taskpilot
-Agent-Based Task Orchestration
-
-Agent Architecture(Workflow execution workflow): 
+Agent-Based Task Orchestration platform
