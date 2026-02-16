@@ -1,23 +1,15 @@
-# Use official Node LTS
-FROM node:20-alpine
+FROM node:20-bullseye
 
-# Set working directory inside container
-WORKDIR /backend
+WORKDIR /app
 
-# Copy package files first (for caching)
 COPY package*.json ./
 
-# Install dependencies
 RUN npm install
 
-# Copy rest of the code
 COPY . .
 
-# Generate Prisma Client
 RUN npx prisma generate
 
-# Expose backend port
 EXPOSE 8000
 
-# Start server
 CMD ["npm", "run", "dev"]

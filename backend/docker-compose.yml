@@ -21,7 +21,6 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-
   # ============================
   # Redis (Queue / Cache)
   # ============================
@@ -32,7 +31,6 @@ services:
 
     ports:
       - "6379:6379"
-
 
   # ============================
   # Backend API
@@ -57,7 +55,6 @@ services:
       - /app/node_modules
 
     command: npm run dev
-
 
 # ============================
 # Volumes
