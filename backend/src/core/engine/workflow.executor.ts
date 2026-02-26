@@ -8,7 +8,7 @@ export class WorkflowExecutor {
     workflow: WorkflowDefinition,
     userId: string
   ): Promise<ExecutionContext> {
-    // 1️⃣ Create execution context
+    //Create execution context
     const context: ExecutionContext = {
       executionId: randomUUID(),
       userId,
@@ -18,10 +18,10 @@ export class WorkflowExecutor {
 
     context.logs.push('Execution started');
 
-    // 2️⃣ Sort nodes (simple sequential version for now)
+    // sort nodes
     const sortedNodes = this.topologicalSort(workflow);
 
-    // 3️⃣ Execute each node
+    // Execute each node
     for (const node of sortedNodes) {
       context.logs.push(`Executing node ${node.id} (${node.type})`);
 
