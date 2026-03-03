@@ -1,17 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-interface JwtPayload {
+export interface JwtPayload {
   userId: string;
-}
-
-// Extend Express Request type
-declare global {
-  namespace Express {
-    interface Request {
-      userId?: string;
-    }
-  }
 }
 
 export const authenticate = (
@@ -22,29 +13,21 @@ export const authenticate = (
   try {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({
-        error: 'Unauthorized: No token provided',
-      });
+    if (!authHeader?.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const token = authHeader.split(' ')[1];
 
-    const secret = process.env.JWT_SECRET;
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET as string
+    ) as JwtPayload;
 
-    if (!secret) {
-      throw new Error('JWT_SECRET not configured');
-    }
-
-    const decoded = jwt.verify(token, secret) as JwtPayload;
-
-    // Attach userId to request
-    req.userId = decoded.userId;
+    (req as any).userId = decoded.userId;
 
     next();
-  } catch (err) {
-    return res.status(401).json({
-      error: 'Unauthorized: Invalid token',
-    });
+  } catch {
+    return res.status(401).json({ error: 'Invalid token' });
   }
 };

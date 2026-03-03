@@ -5,6 +5,7 @@ import http from 'http';
 import authRoutes from './routes/auth.route';
 import executionRoutes from './routes/execution.route';
 import workflowRoutes from './routes/workflow.route';
+import './core/registry/register.node';
 
 import { initSocket } from './config/socket';
 import type { Socket } from 'socket.io';

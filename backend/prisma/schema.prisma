@@ -45,6 +45,8 @@ model Workflow {
 model Execution {
   id String @id @default(uuid())
 
+  executionId String @unique
+
   workflowId String
   userId     String
 

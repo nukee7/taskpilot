@@ -11,10 +11,11 @@ export class WorkflowExecutor {
 
   async execute(
     workflow: WorkflowDefinition,
-    userId: string
+    userId: string,
+    executionId?: string
   ): Promise<ExecutionContext> {
     const context: ExecutionContext = {
-      executionId: randomUUID(),
+      executionId: executionId || randomUUID(),
       userId,
       data: {},
       logs: [],
