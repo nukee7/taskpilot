@@ -2,6 +2,7 @@ import { WorkflowDefinition } from '../types/workflow';
 import { nodeRegistry } from '../registry/node.registry';
 import { ExecutionContext } from '../runtime/context';
 import { SocketWorkflowEmitter } from '../runtime/socketEmitter';
+import { Job } from "bullmq";
 
 export class WorkflowExecutor {
 
@@ -12,7 +13,8 @@ export class WorkflowExecutor {
   async execute(
     workflow: WorkflowDefinition,
     userId: string,
-    executionId: string
+    executionId: string,
+    job: Job
   ): Promise<ExecutionContext> {
 
     const context: ExecutionContext = {
@@ -35,6 +37,7 @@ export class WorkflowExecutor {
       let success = false;
 
       while (attempt <= maxRetries && !success) {
+
         attempt++;
 
         try {
@@ -43,7 +46,14 @@ export class WorkflowExecutor {
             `Executing node ${node.id}, attempt ${attempt}`
           );
 
-          // 🔵 Emit node STARTED
+          // BullMQ execution progress: step started
+          await job.updateProgress({
+            executionStepId: node.id,
+            executionStatus: "STARTED",
+            attempt
+          });
+
+          // WebSocket node event
           this.emitter.emit(executionId, {
             kind: "node",
             nodeId: node.id,
@@ -59,7 +69,14 @@ export class WorkflowExecutor {
 
           context.logs.push(`Node ${node.id} completed`);
 
-          // 🟢 Emit node SUCCESS
+          // BullMQ execution progress: step success
+          await job.updateProgress({
+            executionStepId: node.id,
+            executionStatus: "SUCCESS",
+            output
+          });
+
+          // WebSocket node event
           this.emitter.emit(executionId, {
             kind: "node",
             nodeId: node.id,
@@ -75,9 +92,16 @@ export class WorkflowExecutor {
             `Node ${node.id} failed: ${error.message}`
           );
 
+          // BullMQ execution progress: step failure
+          await job.updateProgress({
+            executionStepId: node.id,
+            executionStatus: "FAILED",
+            error: error.message,
+            attempt
+          });
+
           if (attempt > maxRetries) {
 
-            // 🔴 Emit node FAILED
             this.emitter.emit(executionId, {
               kind: "node",
               nodeId: node.id,
@@ -92,6 +116,11 @@ export class WorkflowExecutor {
     }
 
     context.logs.push('Execution completed');
+
+    // Final execution progress
+    await job.updateProgress({
+      executionStatus: "COMPLETED"
+    });
 
     return context;
   }
